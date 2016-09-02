@@ -79,8 +79,8 @@
 
         #add, #remove {
             position: absolute;
-            bottom: 0px;
-            width: 50%;
+            bottom: 1px;
+            width: 2rem;
         }
 
         #add { left: 0px; }
@@ -97,10 +97,10 @@
     <div id="players"></div>
     <div id="factory" style="display:none">
         <div class="player">
-            <input class="name" value="player" />
+            <input class="name" />
             <button data-magnitude="-10">--</button>
             <button data-magnitude="-1">-</button>
-            <div class="life">20</div>
+            <div class="life"></div>
             <button data-magnitude="1">+</button>
             <button data-magnitude="10">++</button>
         </div>
@@ -110,44 +110,75 @@
 </body>
 <script>
     (function() {
-        document.getElementById("add").addEventListener("click", addPlayer);
-        document.getElementById("remove").addEventListener("click", removePlayer);
+        document.getElementById("add").addEventListener("click", function () {
+            addPlayer();
+            save();
+        });
+        document.getElementById("remove").addEventListener("click", function() { removePlayer(); });
 
-        addPlayer();
-        addPlayer();
+        if (localStorage.players === undefined) {
+            addPlayer();
+            addPlayer();
+            save();
+        } else {
+            JSON.parse(localStorage.players).forEach(addPlayer);
+        }
     })();
 
     function removePlayer() {
         var players = document.getElementById("players");
-        if (players.childNodes.length > 0) {
+        if (players.lastChild) {
             players.removeChild(players.lastChild);
         }
+        save();
     }
 
-    function addPlayer() {
-        document.getElementById("players").appendChild(playerFactory());
+    function addPlayer(player) {
+        document.getElementById("players").appendChild(playerFactory(player));
         window.scrollTo(0,document.body.scrollHeight);
     }
 
-    function playerFactory() {
-        var changeLifeTotal = function(event) {
-            var button = event.currentTarget;
-            var lifeNode = button.parentNode.querySelector(".life");
+    function changeLifeTotal(event) {
+        var button = event.currentTarget;
+        var lifeNode = button.parentNode.querySelector(".life");
 
-            lifeNode.textContent = Number(lifeNode.textContent) + Number(button.dataset.magnitude);
+        lifeNode.textContent = Number(lifeNode.textContent) + Number(button.dataset.magnitude);
+        save();
+    }
+    
+    function toggleName(event) {
+        event.currentTarget.parentNode.querySelector(".name").classList.toggle("collapsed");
+        save();
+    }
+    
+    function playerFactory(player) {
+        var playerNode = document.querySelector("#factory>.player").cloneNode(true);
+
+        Array.prototype.forEach.call(playerNode.querySelectorAll("button"), function(button) {
+            button.addEventListener("click", changeLifeTotal);
+        });
+
+        playerNode.querySelector(".life").addEventListener("click", toggleName);
+
+        player = player || {};
+        playerNode.querySelector(".name").value = player.name || "player";
+        if (player.collapsed) {
+            playerNode.querySelector(".name").classList.add("collapsed");
         }
+        playerNode.querySelector(".life").textContent = player.life || 20;
+        
+        return playerNode;
+    }
 
-        var player = document.querySelector("#factory>.player").cloneNode(true);
-
-        Array.prototype.forEach.call(player.querySelectorAll("button"), function(button) {
-            button.addEventListener("click", changeLifeTotal)
+    function save() {
+        var players = Array.prototype.map.call(document.querySelectorAll("#players>.player"), function (playerNode) {
+            var player = {};
+            player.name = playerNode.querySelector(".name").value;
+            player.life = playerNode.querySelector(".life").textContent;
+            player.collapsed = playerNode.querySelector(".name").classList.contains("collapsed");
+            return player;
         });
-
-        player.querySelector(".life").addEventListener("click", function(event) {
-            event.currentTarget.parentNode.querySelector(".name").classList.toggle("collapsed");
-        });
-
-        return player;
+        localStorage.players = JSON.stringify(players);
     }
 </script>
 </html>
