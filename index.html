@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Life</title>
+    <meta charset='utf-8' />
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+    <style>
+        html {
+            font-size: 32px;
+            font-family: sans-serif;
+            text-align: center;
+            background-color: #333;
+            color: white;
+            width: 100%;
+            height: 100%;
+            white-space: nowrap;
+        }
+
+        body {
+            position: relative;
+            margin: 0 auto;
+            left: 0;
+            right: 0;
+            min-height: 100%;
+            width: 100%;
+            max-width:12rem;
+        }
+
+        * { box-sizing: border-box; }
+
+        *:focus { outline: 0; }
+
+        #players {
+            padding-bottom: 3rem;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .player { width: 100%; }
+        .player, .player>* { float:left; }
+
+        .name {
+            display: block;
+            height: 1rem;
+            width: 100%;
+            line-height: 1rem;
+            font-size: 0.75rem;
+            border: none;
+            background: none;
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+        }
+
+        .name.collapsed {
+            display: none;
+        }
+
+        button, .life {
+            height: 2rem;
+            line-height: 2rem;
+        }
+
+        button {
+            border: none;
+            background-color: transparent;
+            color: rgba(255,255,255, 0.5);
+            font-size: 1rem;
+            width: 16.666666%;
+        }
+
+        .life {
+            width: 33.333333%;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        button { cursor: pointer; }
+        button:active { background: rgba(255,255,255,0.2); }
+
+        #add, #remove {
+            position: absolute;
+            bottom: 0px;
+            width: 50%;
+        }
+
+        #add { left: 0px; }
+        #remove { right: 0px; }
+
+        .player:nth-child(5n+1){ background-color:#1976D2; }
+        .player:nth-child(5n+2){ background-color:#388E3C; }
+        .player:nth-child(5n+3){ background-color:#7B1FA2; }
+        .player:nth-child(5n+4){ background-color:#C2185B; }
+        .player:nth-child(5n){ background-color:#E64A19; }
+    </style>
+</head>
+<body>
+    <div id="players"></div>
+    <div id="factory" style="display:none">
+        <div class="player">
+            <input class="name" value="player" />
+            <button data-magnitude="-10">--</button>
+            <button data-magnitude="-1">-</button>
+            <div class="life">20</div>
+            <button data-magnitude="1">+</button>
+            <button data-magnitude="10">++</button>
+        </div>
+    </div>
+    <button id="add">+</button>
+    <button id="remove">-</button>
+</body>
+<script>
+    (function() {
+        document.getElementById("add").addEventListener("click", addPlayer);
+        document.getElementById("remove").addEventListener("click", removePlayer);
+
+        addPlayer();
+        addPlayer();
+    })();
+
+    function removePlayer() {
+        var players = document.getElementById("players");
+        if (players.childNodes.length > 0) {
+            players.removeChild(players.lastChild);
+        }
+    }
+
+    function addPlayer() {
+        document.getElementById("players").appendChild(playerFactory());
+        window.scrollTo(0,document.body.scrollHeight);
+    }
+
+    function playerFactory() {
+        var changeLifeTotal = function(event) {
+            var button = event.currentTarget;
+            var lifeNode = button.parentNode.querySelector(".life");
+
+            lifeNode.textContent = Number(lifeNode.textContent) + Number(button.dataset.magnitude);
+        }
+
+        var player = document.querySelector("#factory>.player").cloneNode(true);
+
+        Array.prototype.forEach.call(player.querySelectorAll("button"), function(button) {
+            button.addEventListener("click", changeLifeTotal)
+        });
+
+        player.querySelector(".life").addEventListener("click", function(event) {
+            event.currentTarget.parentNode.querySelector(".name").classList.toggle("collapsed");
+        });
+
+        return player;
+    }
+</script>
+</html>
